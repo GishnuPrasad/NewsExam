@@ -11,6 +11,10 @@ export const fetchEpisodes = createAsyncThunk(
   },
 )
 
+export function getEpisodeKey(episode) {
+  return String(episode.id ?? `${episode.number}-${episode.title}`)
+}
+
 function filterEpisodes(episodes, searchTerm) {
   const searchText = searchTerm.trim().toLowerCase()
 
@@ -40,6 +44,19 @@ const episodesSlice = createSlice({
       state.searchTerm = action.payload
       state.allEpisodes = filterEpisodes(state.allEpisodesDummy, action.payload)
     },
+    updateEpisode: (state, action) => {
+      const { id, changes } = action.payload
+      state.allEpisodesDummy = state.allEpisodesDummy.map((episode) =>
+        getEpisodeKey(episode) === id ? { ...episode, ...changes } : episode,
+      )
+      state.allEpisodes = filterEpisodes(state.allEpisodesDummy, state.searchTerm)
+    },
+    deleteEpisode: (state, action) => {
+      state.allEpisodesDummy = state.allEpisodesDummy.filter(
+        (episode) => getEpisodeKey(episode) !== action.payload,
+      )
+      state.allEpisodes = filterEpisodes(state.allEpisodesDummy, state.searchTerm)
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -65,5 +82,5 @@ const episodesSlice = createSlice({
   },
 })
 
-export const { searchEpisode } = episodesSlice.actions
+export const { searchEpisode, updateEpisode, deleteEpisode } = episodesSlice.actions
 export default episodesSlice.reducer
